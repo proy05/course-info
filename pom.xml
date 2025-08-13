@@ -7,11 +7,56 @@
     <groupId>com.pluralsight</groupId>
     <artifactId>course-info</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>course-info-repository</module>
+        <module>course-info-cli</module>
+        <module>course-info-server</module>
+    </modules>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
+        <maven.compiler.release>23</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <slf4j.version>2.0.16</slf4j.version>
+        <jackson.version>2.18.2</jackson.version>
     </properties>
-    
+
+    <!--using maven dependency mgmt to control the version and scope parameters of all dependencies used in the sub-POMs/submodules-->
+    <dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                    <version>${slf4j.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                    <version>${slf4j.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter</artifactId>
+                    <version>5.11.4</version>
+                    <scope>test</scope>
+                </dependency>
+                <!--Even though jackson dependencies were only declared in the course-info-cli POM, they have been
+                put here in the parent POM, since course-info-server transitively brings in the below dependencies
+                 when it uses jersey-media-json-jackson. Hence, the transitive dependencies used in the server POM
+                  are also fixed to the below version-->
+                <dependency>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                    <version>${jackson.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                    <version>${jackson.version}</version>
+                </dependency>
+            </dependencies>
+    </dependencyManagement>
+
+
 </project>

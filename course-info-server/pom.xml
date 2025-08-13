@@ -12,9 +12,113 @@
     <artifactId>course-info-server</artifactId>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jersey.version>3.1.10</jersey.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
+        <!--Intercepts calls to JDK logging and makes calls to slf4j library instead, required to override jdk logging in Jersey server class. Compile time scope is needed-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.pluralsight</groupId>
+            <artifactId>course-info-repository</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-server</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <!-- Jersey DI and core-->
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>${jersey.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Grizzly 2 HTTP Server -->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-grizzly2-http</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <!-- add jackson as json provider for Jersey/JAX-rs for serializing and deserializing json at endpoints on the API we create-->
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>${jersey.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- This package is needed to support Optional<String> jdk8 datatype used in the Course record class
+        which gets turned into List<Course> and then into a json array
+        through the getCourses method on the CourseResource class-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jdk8</artifactId>
+            <version>${jackson.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!--Below section is to build the courseinfo.server maven module into an independently runnable jar
+    with all its dependencies, using the maven shade plugin.
+    Observation: only the class files from the necessary modules are packaged in the single jar, the h2 db is not and
+    keeps living in its original location-->
+    <build>
+        <plugins>
+            <plugin>
+
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <!--First transformer specifies the main class in the courseinfo.server module
+                                 Second transformer specified handles conflicts arising when resources/classes/interfaces from all jar files
+                                  are copied into single jar file (merging conflicts instead of overwriting them) for courseinfo.server-->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.pluralsight.courseinfo.server.CourseServer</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+
+            </plugin>
+        </plugins>
+    </build>
+
+
+
 
 </project>
